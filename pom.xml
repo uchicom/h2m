@@ -27,5 +27,10 @@
 			<artifactId>h2</artifactId>
 			<version>1.4.200</version>
 		</dependency>
+		<dependency>
+			<groupId>com.uchicom</groupId>
+			<artifactId>util</artifactId>
+			<version>1.0.1</version>
+		</dependency>
 	</dependencies>
 </project>
