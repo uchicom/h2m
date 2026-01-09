@@ -1,0 +1,22 @@
+{
+  "name": "Java 25 Maven",
+  "image": "maven:3-eclipse-temurin-25",
+
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+  "postCreateCommand": "java -version && mvn -version",
+  "postStartCommand": "mvn clean package -DskipTests",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.java",
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-maven"
+      ],
+      "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic"
+      }
+    }
+  }
+}
