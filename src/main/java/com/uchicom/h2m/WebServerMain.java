@@ -1,35 +1,26 @@
 // (C) 2026 uchicom
 package com.uchicom.h2m;
 
-import java.sql.SQLException;
+import com.uchicom.h2m.factory.di.DIFactory;
+import java.util.logging.Logger;
 import org.h2.tools.Server;
 
-public class WebServerMain {
-  private static Server webServer;
-  private static boolean alive;
+public class WebServerMain extends AbstractMain {
+  private static AbstractMain serverMain;
 
   public static void main(String[] args) {
-    try {
-      webServer = Server.createWebServer(args).start();
-      System.out.println("web server start");
-      alive = true;
-      while (alive) {
-        Thread.sleep(1000);
-      }
-    } catch (SQLException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    serverMain = DIFactory.webServerMain();
+    serverMain.start(() -> Server.createWebServer(args));
+  }
+
+  public WebServerMain(Logger logger) {
+    super(logger);
   }
 
   public static void shutdown() {
-    if (webServer != null) {
-      webServer.stop();
-      System.out.println("web server stop");
+    if (serverMain == null) {
+      return;
     }
-    alive = false;
+    serverMain.stop();
   }
 }
