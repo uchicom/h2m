@@ -1,35 +1,26 @@
 // (C) 2026 uchicom
 package com.uchicom.h2m;
 
-import java.sql.SQLException;
+import com.uchicom.h2m.factory.di.DIFactory;
+import java.util.logging.Logger;
 import org.h2.tools.Server;
 
-public class TcpServerMain {
-  private static Server tcpServer;
-  private static boolean alive;
+public class TcpServerMain extends AbstractMain {
+  private static AbstractMain serverMain;
 
   public static void main(String[] args) {
-    try {
-      tcpServer = Server.createTcpServer(args).start();
-      System.out.println("tcp server start");
-      alive = true;
-      while (alive) {
-        Thread.sleep(1000);
-      }
-    } catch (SQLException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    serverMain = DIFactory.tcpServerMain();
+    serverMain.start(() -> Server.createTcpServer(args));
+  }
+
+  public TcpServerMain(Logger logger) {
+    super(logger);
   }
 
   public static void shutdown() {
-    if (tcpServer != null) {
-      tcpServer.stop();
-      System.out.println("tcp server stop");
+    if (serverMain == null) {
+      return;
     }
-    alive = false;
+    serverMain.stop();
   }
 }

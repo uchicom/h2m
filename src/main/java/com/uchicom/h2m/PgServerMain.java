@@ -1,35 +1,26 @@
 // (C) 2026 uchicom
 package com.uchicom.h2m;
 
-import java.sql.SQLException;
+import com.uchicom.h2m.factory.di.DIFactory;
+import java.util.logging.Logger;
 import org.h2.tools.Server;
 
-public class PgServerMain {
-  private static Server server;
-  private static boolean alive;
+public class PgServerMain extends AbstractMain {
+  private static AbstractMain serverMain;
 
   public static void main(String[] args) {
-    try {
-      server = Server.createPgServer(args).start();
-      System.out.println("pg server start");
-      alive = true;
-      while (alive) {
-        Thread.sleep(1000);
-      }
-    } catch (SQLException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    serverMain = DIFactory.pgServerMain();
+    serverMain.start(() -> Server.createPgServer(args));
+  }
+
+  public PgServerMain(Logger logger) {
+    super(logger);
   }
 
   public static void shutdown() {
-    if (server != null) {
-      server.stop();
-      System.out.println("pg server stop");
+    if (serverMain == null) {
+      return;
     }
-    alive = false;
+    serverMain.stop();
   }
 }
