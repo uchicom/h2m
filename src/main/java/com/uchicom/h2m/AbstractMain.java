@@ -2,6 +2,8 @@
 package com.uchicom.h2m;
 
 import com.uchicom.util.ThrowingSupplier;
+import com.uchicom.util.logging.DailyRollingFileHandler;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -9,17 +11,20 @@ import org.h2.tools.Server;
 
 public abstract class AbstractMain {
   private final Logger logger;
-  private Server webServer;
+  private Server server;
   private boolean alive;
+  private DailyRollingFileHandler handler;
 
-  public AbstractMain(Logger logger) {
+  public AbstractMain(Logger logger, DailyRollingFileHandler handler) {
     this.logger = logger;
+    this.handler = handler;
   }
 
   void start(ThrowingSupplier<Server, SQLException> supplier) {
+    registerShutdownHook();
     try {
-      webServer = supplier.get().start();
-      logger.info("server start");
+      server = supplier.get().start();
+      logger.info(getClass().getName());
       alive = true;
       while (alive) {
         try {
@@ -33,12 +38,37 @@ public abstract class AbstractMain {
     }
   }
 
-  void stop() {
-    if (webServer == null) {
+  void registerShutdownHook() {
+    if (isNotStandalone()) {
       return;
     }
-    webServer.stop();
-    logger.info("server stop");
+    Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
+  }
+
+  boolean isNotStandalone() {
+    return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
+        .walk(
+            frames -> {
+              for (var f : (Iterable<StackWalker.StackFrame>) frames::iterator) {
+                if (!f.getMethodName().equals("main")) {
+                  continue;
+                }
+                return !AbstractMain.class.isAssignableFrom(f.getDeclaringClass());
+              }
+              return true;
+            });
+  }
+
+  void stop() {
+    if (server == null) {
+      return;
+    }
+    server.stop();
     alive = false;
+    try {
+      handler.logInShutdownHook(Level.INFO, getClass().getName());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
